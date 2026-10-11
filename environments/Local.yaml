@@ -1,0 +1,20 @@
+version: 1
+udps:
+  - name: "online.store.db.username"
+    secretId: "_"
+  - name: "online.store.db.password"
+    secretId: "_"
+endpoints:
+  - name: "Online Store PostgreSQL DB"
+    type: "DB"
+    url: "jdbc:postgresql://localhost:5432/online_store"
+    username: "${online.store.db.username}"
+    password: "${online.store.db.password}"
+  - name: "ActiveMQ"
+    type: "JMS"
+    provider: "ActiveMq"
+    host: "localhost"
+    port: 61616
+  - name: "Order API"
+    type: "HTTP"
+    url: "http://localhost:8081/api/orders"

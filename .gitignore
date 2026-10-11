@@ -1,0 +1,5 @@
+environments/*
+!environments/CICD.yaml
+!environments/Local.yaml
+testCaseRunResults
+folderRunResults

@@ -1,0 +1,6 @@
+version: 1
+secondId: "Xs6u8oBQo32b"
+setUpReferences:
+  - "/Common Test Setups/Start PostgreSQL Stub"
+  - "/Common Test Setups/Create Orders Table"
+  - "/Common Test Setups/Start ActiveMQ Stub"

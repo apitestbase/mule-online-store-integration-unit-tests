@@ -1,0 +1,28 @@
+version: 1
+secondId: "BdwDgz83VBSX"
+teststeps:
+  - name: "Launch ActiveMQ container"
+    type: "Docker"
+    internalId: "bN"
+    actionProperties: !<DockerRun>
+      imageName: "apache/activemq:6.2.5"
+      containerName: "online-store-activemq"
+      portMappings:
+        - hostPort: "61616"
+          containerPort: "61616"
+        - hostPort: "8161"
+          containerPort: "8161"
+  - name: "Make sure the broker is up and running"
+    type: "JMS"
+    internalId: "vj"
+    managedEndpointName: "ActiveMQ"
+    action: "CheckDepth"
+    otherProperties:
+      queueName: "dummy"
+    assertions:
+      - name: "Queue depth equals"
+        type: "IntegerEqual"
+        otherProperties:
+          number: "0"
+    runPattern: !<RepeatUntilPass>
+      type: "RepeatUntilPass"

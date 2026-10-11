@@ -1,0 +1,121 @@
+version: 1
+secondId: "thfNEUQAyR7L"
+udps:
+  - name: "customer.code"
+    value: "C001"
+  - name: "product.code"
+    value: "P100"
+  - name: "quantity"
+    value: "2"
+  - name: "status"
+    value: "PENDING"
+  - name: "queue.name"
+    value: "order.created"
+teststeps:
+  - name: "Clear the orders table"
+    type: "DB"
+    internalId: "wd"
+    managedEndpointName: "Online Store PostgreSQL DB"
+    apiRequest: !<DbRequest>
+      sqlScript: "TRUNCATE orders;"
+  - name: "Clear the order-created event queue"
+    type: "JMS"
+    internalId: "o7"
+    managedEndpointName: "ActiveMQ"
+    action: "Clear"
+    otherProperties:
+      queueName: "${queue.name}"
+  - name: "Invoke the API"
+    type: "HTTP"
+    internalId: "o5"
+    managedEndpointName: "Order API"
+    apiRequest: !<HttpRequest>
+      method: "POST"
+      headers:
+        - name: "Content-Type"
+          value: "application/json"
+      body: |-
+        {
+            "customerCode": "${customer.code}",
+            "productCode": "${product.code}",
+            "quantity": ${quantity}
+        }
+    assertions:
+      - name: "StatusCodeEqual 1"
+        type: "StatusCodeEqual"
+        otherProperties:
+          statusCode: "201"
+      - name: "JsonEqual 1"
+        type: "JsonEqual"
+        otherProperties:
+          expectedJSON: |-
+            {
+                "orderId": "#{json-unit.any-number}",
+                "status": "${status}"
+            }
+    propertyExtractors:
+      - propertyName: "order.id"
+        type: "JsonPath"
+        otherProperties:
+          path: "$.orderId"
+  - name: "Verify the orders table data"
+    type: "DB"
+    internalId: "1U"
+    managedEndpointName: "Online Store PostgreSQL DB"
+    apiRequest: !<DbRequest>
+      sqlScript: |-
+        SELECT order_id, customer_code, product_code, quantity, status,
+            to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as created_at
+        FROM orders;
+    assertions:
+      - name: "JsonEqual 1"
+        type: "JsonEqual"
+        otherProperties:
+          expectedJSON: |-
+            [{
+                "order_id": ${order.id},
+                "customer_code": "${customer.code}",
+                "product_code": "${product.code}",
+                "quantity": ${quantity},
+                "status": "${status}",
+                "created_at": "#{json-unit.any-string}"
+            }]
+    propertyExtractors:
+      - propertyName: "created.at"
+        type: "JsonPath"
+        otherProperties:
+          path: "$[0].created_at"
+  - name: "Verify the event count"
+    type: "JMS"
+    internalId: "ry"
+    managedEndpointName: "ActiveMQ"
+    action: "CheckDepth"
+    otherProperties:
+      queueName: "${queue.name}"
+    assertions:
+      - name: "Queue depth equals"
+        type: "IntegerEqual"
+        otherProperties:
+          number: "1"
+  - name: "Verify the event payload"
+    type: "JMS"
+    internalId: "NZ"
+    managedEndpointName: "ActiveMQ"
+    action: "Browse"
+    actionProperties: !<JmsBrowse>
+      browsePattern: !<ByIndex> {}
+    otherProperties:
+      queueName: "${queue.name}"
+    assertions:
+      - name: "JsonEqual 1"
+        type: "JsonEqual"
+        otherProperties:
+          expectedJSON: |-
+            {
+              "orderId": ${order.id},
+              "customerCode": "${customer.code}",
+              "productCode": "${product.code}",
+              "quantity": ${quantity},
+              "status": "${status}",
+              "createdAt": "${created.at}"
+            }

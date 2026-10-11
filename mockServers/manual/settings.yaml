@@ -1,0 +1,3 @@
+version: 1
+httpPort: 8102
+httpsPort: 8103

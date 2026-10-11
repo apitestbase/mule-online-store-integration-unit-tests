@@ -1,0 +1,27 @@
+version: 1
+secondId: "B9MHo3oNy09x"
+teststeps:
+  - name: "Launch PostgreSQL container with online_store database"
+    type: "Docker"
+    internalId: "bN"
+    actionProperties: !<DockerRun>
+      imageName: "postgres:18"
+      containerName: "online-store-postgres"
+      portMappings:
+        - hostPort: "5432"
+          containerPort: "5432"
+      envVars:
+        - name: "POSTGRES_DB"
+          value: "online_store"
+        - name: "POSTGRES_USER"
+          value: "${online.store.db.username}"
+        - name: "POSTGRES_PASSWORD"
+          value: "${online.store.db.password}"
+  - name: "Make sure the online_store database is up and running"
+    type: "DB"
+    internalId: "2y"
+    managedEndpointName: "Online Store PostgreSQL DB"
+    apiRequest: !<DbRequest>
+      sqlScript: "select 1;"
+    runPattern: !<RepeatUntilPass>
+      type: "RepeatUntilPass"

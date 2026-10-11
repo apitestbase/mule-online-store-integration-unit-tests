@@ -1,0 +1,19 @@
+version: 1
+secondId: "kxeMsGLq9w6F"
+teststeps:
+  - name: "Create orders table"
+    type: "DB"
+    internalId: "lL"
+    managedEndpointName: "Online Store PostgreSQL DB"
+    apiRequest: !<DbRequest>
+      sqlScript: |-
+        DROP TABLE IF EXISTS orders;
+
+        CREATE TABLE orders (
+          order_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+          customer_code VARCHAR(20),
+          product_code VARCHAR(20),
+          quantity INTEGER,
+          status VARCHAR(20),
+          created_at TIMESTAMP NOT NULL DEFAULT now()
+        );
